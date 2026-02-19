@@ -1,6 +1,6 @@
-# Figure 2 G
+# Extended Data Figure 2H-BLAST
 # DNA double stranded breaks trigger mosaic VSG formation if homology is available
-# Smith 2024
+# Smith 2026
 
 VSG_group_counts <- tibble(c("EATRO", "EATRO", "EATRO", "Lister", "Lister", "Lister"), c("Family", "Unique","Duplicate", "Family", "Unique", "Duplicate"),
                            c(5268-1001, 1001, 0, 5667-941-5, 941-5, 5), .name_repair = ~ c("cell_line", "type", "count"))
