@@ -1,4 +1,4 @@
-# Figure 6 E & F
+# Figure 4 E & F
 # AnTat1.1 mosaic VSGs form in vivo and reside within tissues of WT mice
 # Smith 2024
 
@@ -22,7 +22,7 @@ all_mice <- all_mice %>%
   filter(mouse %in% c("E1M4", "E1M5", "E2M6", "E2M7", "E2M8", "E2M9", "E3M4", "E1M7", "E1M8", "E1M10", "E2M1", "E2M2", "E3M6", "E3M7"))
 
 
-# 6E recombination site length
+# 4E recombination site length
 
 wt_recomb_sites <- wt_consol_COs %>%
   mutate(recomb_len = target_end - target_start)
@@ -56,7 +56,7 @@ all_recomb_sites_mice <- ggplot(recomb_mice) +
   ggplot2::labs(x = "Recomb Site Length", y = "Count") #+
 coord_cartesian(xlim = c(0, 200))
 
-# 6F insertion lengths
+# 4F insertion lengths
 
 # insertion lengths ie double cross overs
 num_mice_reads <- all_mice %>%
