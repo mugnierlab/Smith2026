@@ -1,4 +1,4 @@
-# Figure 6 A
+# Figure 4 A
 # AnTat1.1 mosaic VSGs form in vivo and reside within tissues of WT mice
 # Smith 2026
 
