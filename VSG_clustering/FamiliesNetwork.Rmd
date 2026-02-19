@@ -1,0 +1,288 @@
+---
+title: "VSGenome Network"
+author: "Jaime So"
+date: "2024-06-20"
+output:
+  html_document:
+    css: "~/Desktop/PhD-Mugnierlab/Scripts/MugnierLab-GitHub/style.css"
+    includes:
+      after_body: "~/Desktop/PhD-Mugnierlab/Scripts/MugnierLab-GitHub/JSo_Footer.html"
+    number_sections: no
+    theme: flatly
+    toc: yes
+    toc_float: yes
+  always_allow_html: yes
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+    fig_caption: yes
+    df_print: kable
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(igraph)
+library(tidyverse)
+library(msa)
+library(Biostrings)
+
+```
+
+# Network Clustering of Lister427 and EATRO1125 VSG repertoires 
+
+We have 3 VSGenomes to test:
+
+1) EATRO VSGnome 
+2) Lister VSGnome with george’s seqs and 2018 genome extras 
+3) Lister VSGs only found in the 2018 genome 
+
+## Perform all v. all blastn to Generate Edgelist
+
+Blastn performed using default parameters. Input Fasta files contain full VSG and pseudogene coding sequences. large blast output can be subset later to find connections of interest. Specify csv output and report query/subject original length, alignment length, expect value, and percent identity. Aishwarya used cdhit followed by heirarchical fasttree clustering to define families. cd-hit works by perfroming alignment, finding the longest representative seqeunce, clustering others similar to the representative by a percent identity threshold.
+
+Blastn will report smaller sequences of high identity between the subject and query. These hits are not as important for Jaclyn's family classification as they often contain uninformative sections, such as C-terminal sequence which is highly conserved among all VSG. The sets of mosaic donors observed experimentally exhibit high sequence homology along the full length of the VSG. I plan to filter the edgelist for blastn hits with high query coverage.
+
+```{r, eval=FALSE}
+
+# make blastdb
+% makeblastdb -in <input_file.fa> -out <output_file> -parse_seqids -dbtype nucl
+
+# do blastn
+% blastn -db <blast_database> -query <input_file.fa> -out <output_file.csv> -outfmt "10 qseqid sseqid qlen slen length evalue pident"
+
+```
+
+## Write a function to perform network analysis and clustering of BLASTn results
+
+Filter hits by e-value and alignment coverage. Use igraph to generate a network plot where edges are drawn between nodes (VSG proteins) that share similarity that meets our specified thresholds. Cluster nodes using the leading eigen algorithm to define families. Remove "isolated" nodes from igraph object to aid in clustering, but save in output dataframe as these are the unique VSG which cannot be grouped into a family.
+
+### net_analyze() funtion performs igraph network clustering analysis
+outputs a dataframe containing each VSG name, the cluster name (or unique if the node was isolated), the degree (or number) of edges that connect to each VSG, and the number of other VSG in the same cluster.
+
+1. links = dataframe of blastn results
+2. cutoff = desired expect value cutoff for drawing edges
+3. covergae = desired alignment coverage of the query sequence
+
+```{r}
+
+net_analyze <- function(links, cutoff, coverage){
+  nodeslist <- unique(links$from)
+# remove sequences that map to themselves  
+  links <- links %>% filter(!(from == to))
+# impose evalue and alignment length cutoff
+  links <- filter(links, evalue <= cutoff & cov >= coverage)
+# create igraph objects
+  nets <- graph_from_data_frame(d=links, vertices=nodeslist, directed=F)
+  simple <- igraph::simplify(nets, remove.multiple = T, remove.loops = T)
+  isolated <- which(degree(simple)==0) 
+  simple <- delete_vertices(simple, isolated)
+  df_degree <- degree(simple) %>% as.data.frame() 
+  colnames(df_degree) <- "degree"
+  df_degree <- df_degree %>% mutate(VSG = rownames(.))
+  df_degree <- rbind(df_degree, data.frame(VSG  = names(isolated),
+                                           degree= rep(0, length(isolated))))
+# then establish which communities each VSG belongs to
+  cluster <- cluster_leading_eigen(simple)
+  df_com <- cluster$membership
+# extract seq ID from the network plot dataframe
+  cdf <- as_ids(V(simple))
+# each of these can be the column of the dataframe
+  df <- data.frame(cdf,df_com)
+  colnames(df) <- c("VSG", "cluster")
+  df <- rbind(df, data.frame(VSG  = names(isolated),
+                             cluster = rep("unique", length(isolated))))
+  df <- inner_join(df, df_degree, by = "VSG")
+  df <- df %>% group_by(cluster) %>% mutate(n = length(VSG)) %>%
+    ungroup()
+  return(df)
+}
+
+```
+
+# FASTA File: EATRO_vsgs_long_unique.fa
+
+```{r, eval=FALSE}
+
+% makeblastdb -in EATRO_vsgs_long_unique.fa -out EATRO_vsgs -parse_seqids -dbtype nucl
+
+Building a new DB, current time: 06/20/2024 11:19:55
+New DB name:   /Users/jaimeso/Desktop/PhD-MugnierLab/Experiments/helpJaclyn/EATRO_vsgs
+New DB title:  EATRO_vsgs_long_unique.fa
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 5268 sequences in 0.151069 seconds.
+
+% blastn -db EATRO_vsgs -query EATRO_vsgs_long_unique.fa -out EATRO_vsgs_network_blastn.csv -outfmt "10 qseqid sseqid qlen slen length evalue pident"
+
+```
+
+### Network Analysis
+
+```{r}
+
+EATRO_links <- read_csv("EATRO_vsgs_network_blastn.csv", col_names = F)
+colnames(EATRO_links) <- c("from", "to", "query_length", "subject_length", "align_length", "evalue", "pident")
+
+# we want to filter dataframe for alignments that cover a large proportion of the original sequence, add this to the results
+EATRO_links <- EATRO_links %>% mutate(cov = align_length / query_length)
+
+# stringent evalue and alignment coverage > 80%
+EATRO_cutoff1 <- net_analyze(EATRO_links, 1e-20, 0.8)
+EATRO_cutoff1 %>% filter(grepl("Antat", VSG))
+EATRO_cutoff1 %>% filter(cluster == "114")
+
+# the proportion of unique VSG that were not grouped into a family
+EATRO_cutoff1 %>% filter(cluster == "unique") %>% nrow() / nrow(EATRO_cutoff1)
+
+# how many families are there?
+unique(EATRO_cutoff1$cluster) %>% tail()
+
+# There are 993 VSG families in EATRO1125
+
+# range of family sizes
+summary(EATRO_cutoff1[EATRO_cutoff1$cluster != "unique", ] %>% select(cluster, n) %>% distinct() %>% .$n)
+
+# write clustering output to a csv file
+#write_csv(EATRO_cutoff1, file = "EATRO_families.csv")
+
+```
+
+# FASTA File: all_unique_posDuplicate_Lister427VSGs_AnTat.fa
+
+The gene IDs in this fasta file are too long and BLASTn will not use them as input. shorten them and rewrite the fasta file
+
+```{r}
+
+ListerFasta <- readDNAStringSet(filepath = "all_unique_posDuplicate_Lister427VSGs_AnTat.fa")
+
+fastanames <- data.frame(oldname = names(ListerFasta))
+fastanames$int <- str_split_fixed(fastanames$oldname, ";", n = 2)[, 1] 
+fastanames$newname <- case_when(grepl("ID=", fastanames$int) ~ str_split_fixed(fastanames$int, "ID=", n = 2)[, 2],
+                                TRUE ~ fastanames$int)
+
+names(ListerFasta) <- fastanames$newname
+
+#writeXStringSet(ListerFasta, filepath = "all_unique_posDuplicate_Lister427VSGs_AnTat_renamed.fa")
+
+```
+
+### Command line inputs and outputs
+
+```{r, eval=FALSE}
+
+% makeblastdb -in all_unique_posDuplicate_Lister427VSGs_AnTat_renamed.fa -out Lister427VSGs_AnTat -parse_seqids -dbtype nucl
+
+Building a new DB, current time: 06/21/2024 15:28:52
+New DB name:   /Users/jaimeso/Desktop/PhD-MugnierLab/Experiments/helpJaclyn/Lister427VSGs_AnTat
+New DB title:  all_unique_posDuplicate_Lister427VSGs_AnTat_renamed.fa
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 8442 sequences in 0.226577 seconds.
+
+% blastn -db Lister427VSGs_AnTat -query all_unique_posDuplicate_Lister427VSGs_AnTat_renamed.fa -out all_unique_posDuplicate_Lister427VSGs_AnTat_network_blastn.csv -outfmt "10 qseqid sseqid qlen slen length evalue pident"
+
+```
+
+### Network Analysis
+
+```{r}
+
+Lister_links <- read_csv("all_unique_posDuplicate_Lister427VSGs_AnTat_network_blastn.csv", col_names = F)
+colnames(Lister_links) <- c("from", "to", "query_length", "subject_length", "align_length", "evalue", "pident")
+
+# we want to filter dataframe for alignments that cover a large proportion of the original sequence, add this to the results
+Lister_links <- Lister_links %>% mutate(cov = align_length / query_length)
+
+# stringent evalue and alignment coverage > 80%
+Lister_cutoff1 <- net_analyze(Lister_links, 1e-20, 0.8)
+Lister_cutoff1 %>% filter(grepl("Antat", VSG))
+Lister_cutoff1 %>% filter(cluster == "35")
+
+# the proportion of unique VSG that were not grouped into a family
+Lister_cutoff1 %>% filter(cluster == "unique") %>% nrow() / nrow(Lister_cutoff1)
+
+# how many families are there?
+unique(Lister_cutoff1$cluster) %>% tail()
+
+# There are 1171 VSG families in this Lister repertoire
+
+# range of family sizes
+summary(Lister_cutoff1[Lister_cutoff1$cluster != "unique", ] %>% select(cluster, n) %>% distinct() %>% .$n)
+
+# write clustering output to a csv file
+#write_csv(Lister_cutoff1, file = "Lister_families.csv")
+
+```
+
+# FASTA File: all_unique_posDuplicate_Lister427VSGsonly_AnTat.fa
+
+The gene IDs for this file are also too long for blast and need to be re-written.
+
+```{r}
+
+ListerOnlyFasta <- readDNAStringSet(filepath = "all_unique_posDuplicate_Lister427VSGsonly_AnTat.fa")
+
+fastanames <- data.frame(oldname = names(ListerOnlyFasta))
+fastanames$int <- str_split_fixed(fastanames$oldname, ";", n = 2)[, 1] 
+fastanames$newname <- case_when(grepl("ID=", fastanames$int) ~ str_split_fixed(fastanames$int, "ID=", n = 2)[, 2],
+                                TRUE ~ fastanames$int)
+
+names(ListerOnlyFasta) <- fastanames$newname
+
+writeXStringSet(ListerOnlyFasta, filepath = "all_unique_posDuplicate_Lister427VSGsonly_AnTat_renamed.fa")
+
+```
+
+### Command line inputs and outputs
+
+```{r, eval=FALSE}
+
+% makeblastdb -in all_unique_posDuplicate_Lister427VSGsonly_AnTat_renamed.fa -out Lister427VSGsOnly_AnTat -parse_seqids -dbtype nucl
+
+Building a new DB, current time: 06/21/2024 17:15:28
+New DB name:   /Users/jaimeso/Desktop/PhD-MugnierLab/Experiments/helpJaclyn/Lister427VSGsOnly_AnTat
+New DB title:  all_unique_posDuplicate_Lister427VSGsonly_AnTat_renamed.fa
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 5667 sequences in 0.205554 seconds.
+
+% blastn -db Lister427VSGsOnly_AnTat -query all_unique_posDuplicate_Lister427VSGsonly_AnTat_renamed.fa -out all_unique_posDuplicate_Lister427VSGsonly_AnTat_AnTat_network_blastn.csv -outfmt "10 qseqid sseqid qlen slen length evalue pident"
+
+```
+
+### Network Analysis
+```{r}
+
+ListerOnly_links <- read_csv("all_unique_posDuplicate_Lister427VSGsonly_AnTat_AnTat_network_blastn.csv", col_names = F)
+colnames(ListerOnly_links) <- c("from", "to", "query_length", "subject_length", "align_length", "evalue", "pident")
+
+# we want to filter dataframe for alignments that cover a large proportion of the original sequence, add this to the results
+ListerOnly_links <- ListerOnly_links %>% mutate(cov = align_length / query_length)
+
+# stringent evalue and alignment coverage > 80%
+ListerOnly_cutoff1 <- net_analyze(ListerOnly_links, 1e-20, 0.8)
+ListerOnly_cutoff1 %>% filter(grepl("Antat", VSG))
+ListerOnly_cutoff1 %>% filter(cluster == "31")
+
+# the proportion of unique VSG that were not grouped into a family
+ListerOnly_cutoff1 %>% filter(cluster == "unique") %>% nrow() / nrow(ListerOnly_cutoff1)
+
+# how many families are there?
+unique(ListerOnly_cutoff1$cluster) %>% tail()
+
+# There are 938 VSG families in this Lister repertoire
+
+# range of family sizes
+summary(ListerOnly_cutoff1[ListerOnly_cutoff1$cluster != "unique", ] %>% select(cluster, n) %>% distinct() %>% .$n)
+
+# write clustering output to a csv file
+#write_csv(ListerOnly_cutoff1, file = "ListerOnly_families.csv")
+
+```
+

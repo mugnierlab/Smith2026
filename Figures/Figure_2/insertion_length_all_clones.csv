@@ -1,0 +1,56 @@
+﻿clone,insert_len,donor,len_desc,qual
+C2_C7_694_cloneE8,23,2986,near,high
+C2_C7_694_cloneC8,18,2986,near,high
+C1_G7_694_cloneE3,88,2986,near,high
+C1_G7_694_cloneF7,49,228,near,high
+C1_G7_694_cloneC3,46,228_points,near,high
+C1_G7_694_cloneD8,25,228,near,high
+C1_G7_694_cloneD6,43,2986,near,high
+C2_E3_1459_cloneC5,4,3110,near,high
+C2_E3_1459_cloneD10,161,228,near,high
+C2_E3_1459_cloneD4,26,194,near,high
+C2_E3_1459_cloneC4,1,3110,near,high
+C2_F12_1459_cloneE7,59,"ambiguous, not family",near,high
+C2_F12_1459_cloneC10,189,"ambiguous, not family with mutations",near,high
+C2_F12_1459_cloneF5,266,228_altending unknown,near,high
+C2_F12_1459_cloneG4,40,36,near,high
+C1_D10_1459_cloneG10,4,3110,near,high
+D9_f10,8,3110,near,low
+D9_C7,23,2986,near,high
+D9_B11,22,228,near,low
+D9_G12,15,228,near,high
+D9_F9,18,2986,near,high
+D9_E8,10,2986,near,low
+D9_E2,1117,228,far,high
+D9_C11,15,2986,near,high
+D9_C9,2,228_2986,near,high
+D9_C3,106,228,near,high
+C10_D5,177,2986+228,near,high
+D9_A7,18,2986,near,low
+C10_B7,1,228_2986,near,high
+D9_G1,16,228,near,low
+C10_E2,29,2986_228+3110,near,high
+C10_G3,1,228_2986,near,high
+D9_C3,79,228,near,med
+D9_A3,43,2986,near,med
+D9_C1,94,228,near,high
+D9_G4,43,228+2986,near,high
+D9_D2,79,228,near,low
+D9_B9,31,228,near,high
+D9_B10,18,2986,near,high
+D9_E4,74,228then2986or3110,near,high
+A1(G3S),43,228,near,high
+F3(G3S),79,228,near,high
+A8(G3S),31,228,near,med
+D1(G3S),79,228,near,high
+D9_B4,5,3110 hen 2986,near,high
+D9_B1,18,2986,near,high
+D9_A3,15,228,near,high
+D9_A2,2,228_2986,near,low
+D9_A6,18,2986,near,high
+B3_C10,169,2986,near,high
+B3_A10,8,3110,near,high
+D9_B11,93,2986,near,high
+C1_D10_1459_cloneD6_nanopore_ab1,576,"3110, plus others",far ,high
+C1_D10_1459_cloneE4_nanopore_ab1,146,"parts matching 228, others not",near,high
+C1_D10_1459_cloneG10_nanopore_ab1,4,3110,near,high

@@ -1,0 +1,5 @@
+Chr1_3A_Tb427v10	VEuPathDB	pseudogene	1878518	1879734	.	-	.	ID=Tb427_000236600:pseudogene;description=hypothetical protein%2C conserved;ebi_biotype=pseudogene
+unitig_252_Tb427v10	VEuPathDB	pseudogene	8010	9558	.	+	.	ID=Tb427_000787800:pseudogene;description=Trypanosome variant surface glycoprotein (A-type)%2C putative;ebi_biotype=pseudogene
+Chr5_3A_Tb427v10	VEuPathDB	pseudogene	381458	382993	.	-	.	ID=Tb427_000362300:pseudogene;description=Trypanosome variant surface glycoprotein (A-type)%2C putative;ebi_biotype=pseudogene
+Chr10_core_Tb427v10	VEuPathDB	protein_coding_gene	3315878	3318709	.	-	.	ID=Tb427_100143700;description=hypothetical protein%2C conserved;ebi_biotype=protein_coding
+Chr11_core_Tb427v10	VEuPathDB	protein_coding_gene	778122	778937	.	-	.	ID=Tb427_110032900;description=hypothetical protein%2C conserved;ebi_biotype=protein_coding
