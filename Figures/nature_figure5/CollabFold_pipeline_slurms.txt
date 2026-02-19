@@ -1,0 +1,79 @@
+Author: Lusajo Mwakibete
+Pipeline Steps
+1. Signal P - install the package on the terminal/server using the github version https://github.com/fteufel/signalp-6.0/blob/main/installation_instructions.md
+	might encounter problems with torch make sure it's the correct version as supported by the package
+2. findVSGN 
+3. Localcolabfold
+	make sure to load gcc when running using the gpu, use gpu to run it's faster
+
+
+
+
+
+Example scripting for Jaclyn's analysis 
+
+##running pipeline for Jaclyn - Antat
+#signalp and findVSGN
+------
+nano antat_signalp.scr
+#!/bin/bash -l
+#SBATCH --job-name=“log_antat_signalp_findVSGN.txt”
+#SBATCH --time=24:0:0
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=32
+#SBATCH --partition=shared
+#SBATCH --mail-type=end
+#SBATCH --mail-user=lmwakib1@jh.edu
+#SBATCH --export=ALL
+#SBATCH --account=mmugnie1
+
+ml anaconda
+conda activate signalp
+signalp6 --fastafile antat_vsg.fasta --organism eukarya --output_dir first_run --format txt --mode fast
+conda deactivate signalp
+
+
+----- moved the file 
+mv /home/lmwakib1/scratch4-mmugnie1/saj/first_run/processed_entries.fasta antat.fa
+
+------------------
+nano find_VSG_N.scr
+------
+#!/bin/bash -l
+#SBATCH --job-name=“find_VSG_N_domain”
+#SBATCH --time=24:0:0
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=32
+#SBATCH --partition=shared
+#SBATCH --mail-type=end
+#SBATCH --mail-user=lmwakib1@jh.edu
+#SBATCH --export=ALL
+#SBATCH --account=mmugnie1
+
+ml anaconda
+conda activate find_VSG
+python find_VSG_Nterm.py antat.fa HMM_profiles/
+conda deactivate
+
+
+---------
+#running localcolab_fold
+-------------------------------
+#!/bin/bash -l
+#SBATCH --job-name=“localcolab_fold_antat.txt”
+#SBATCH --time=24:0:0
+#SBATCH --nodes=1
+#SBATCH --output="log_ant.txt"
+#SBATCH --ntasks-per-node=32
+#SBATCH --partition=a100
+#SBATCH --gres=gpu:1
+#SBATCH --mail-type=end
+#SBATCH --mail-user=lmwakib1@jh.edu
+#SBATCH --export=ALLle
+#SBATCH --account=mmugnie1_gpu
+
+ml anaconda
+ml gcc
+conda activate /home/lmwakib1/scratch4-mmugnie1/saj/localcolabfold/colabfold-conda
+colabfold_batch --templates --amber --num-recycle 3 --use-gpu-relax antat_Nterms.fa antat_run
+conda deactivate

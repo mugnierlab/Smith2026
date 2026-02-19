@@ -1,0 +1,16 @@
+VSG-2986
+M2: A6	S(204)G	A(207)S	S(208)N 3
+M3: D6	S(204)G	A(207)S	S(208)N	T(217)S <- this is NEW also called M2.1 4
+M4: B11	S(204)G	A(207)S	S(208)N	T(217)S	P(227)T	T(234)I 6
+M5: C10	S(204)G	A(207)S	S(208)N	T(217)S	P(227)T	T(234)I	A(238)E	S(243)T	S(246)T	L(247)I	Q(248)K	P(252)T	T(253)A 13
+Color = purple
+
+
+VSG-228
+M6: D8	S(204)G	A(207)T	S(208)N 3
+M7: C3	S(204)A	A(207)T	S(208)N	A(213)G	T(217)S 5 * mutation
+M8: F7	S(204)G	A(207)T	S(208)N	A(213)G	T(217)S 5
+Color = light teal
+
+VSG-3110
+Color = darker teal
