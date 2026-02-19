@@ -1,6 +1,6 @@
-# Figure 6 C & D
+# Figure 4 C & D
 # AnTat1.1 mosaic VSGs form in vivo and reside within tissues of WT mice
-# Smith 2024
+# Smith 2026
 
 # read in data
 
@@ -16,7 +16,7 @@ full_tissues_COs_final <- full_tissues_COs_final %>%
   filter(mouse != "C3M4") %>%
   filter(read_count != 6)
 
-# 6C
+# 4C
 # graph the tissues 
 tissue_VSG_seq_graphs_final <- graph_all_events(full_tissues_COs_final, wrap_by = "tissues",
                                                 color_var = "donor_VSG", leg = "Donor VSGs", multiple = FALSE,
@@ -25,7 +25,7 @@ tissue_VSG_seq_graphs_final <- graph_all_events(full_tissues_COs_final, wrap_by 
   ggplot2::geom_vline(aes(xintercept = c(1598))) +
   ggplot2::geom_vline(aes(xintercept = c(1079)))
 
-# 6D
+# 4D
 tissues_quant_by_point <- full_tissues_COs_final %>%
   mutate(tissues = case_when(
     genotype == "Blood" ~ "Blood",
