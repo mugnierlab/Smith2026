@@ -1,4 +1,4 @@
-# Figure 2 A + B
+# Figure 2 A + B (and Extended Data Figure 3)
 # DNA double stranded breaks trigger mosaic VSG formation if homology is available
 # Smith 2026
 
