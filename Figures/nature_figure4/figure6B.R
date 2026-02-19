@@ -1,6 +1,6 @@
-# Figure 6 B
+# Figure 4 B
 # AnTat1.1 mosaic VSGs form in vivo and reside within tissues of WT mice
-# Smith 2024
+# Smith 2026
 
 # read in data
 wt_consol_COs <- get_all_CO_events("./cosol_all_WT_ind_cross_over_events.csv", day_order = c("D15"),
